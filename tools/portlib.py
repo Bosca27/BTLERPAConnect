@@ -159,7 +159,7 @@ def assemble(source, symbols, entry, link_at=None):
                 raise PortError(f"{source}: routine has relocations, it must be position independent")
             final = obj
         else:
-            subprocess.run(["ld", "-arch", "x86_64", "-preload", "-e", entry, "-segalign", "0x10",
+            subprocess.run(["ld", "-arch", "x86_64", "-preload", "-e", entry, "-segalign", "0x8",
                             "-segaddr", "__TEXT", hex(link_at), str(obj), "-o", str(out)],
                            check=True, capture_output=True)
             code, base, _nreloc = text_section(out.read_bytes())

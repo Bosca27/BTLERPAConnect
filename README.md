@@ -26,7 +26,7 @@ Second machine (0.3.0):
 | Bluetooth card | Fenvi T919 (BCM94360 Wi-Fi + BCM20702 Bluetooth) |
 | Bluetooth chipset | `BCM20702A0`, USB `0b05:180a`, ROM firmware v8718, no BrcmPatchRAM |
 | SMBIOS | `MacPro7,1` |
-| macOS | Tahoe 26.7.2 (`25G332`), Intel x86_64, OCLP-CustoMac 3.0.3 "Modern Wireless" |
+| macOS | Tahoe 26.7.2 (`25G332`) and 26.7.3 (`25G342`), Intel x86_64, OCLP-CustoMac 3.0.3 "Modern Wireless" |
 | Bluetooth kexts | Lilu 1.7.2, BlueToolFixup 2.7.2, BTLEAdvFix 0.3.0 |
 | Devices | iPhone on iOS 27.2, Apple Watch Series 4 on watchOS 10.6.2 |
 
@@ -260,10 +260,11 @@ Verified on:
 |-------|-------|-----------|---------|---------|
 | Tahoe 26.6 | `25G72` | Dell DW1560 / BCM20702A3 | iPhone on iOS 15.8.3 | 0.2.1 only, see below |
 | Tahoe 26.7.2 | `25G332` | Fenvi T919 / BCM20702A0 | iPhone on iOS 27.2, Apple Watch Series 4 on watchOS 10.6.2 | 0.3.0 |
+| Tahoe 26.7.3 | `25G342` | same machine | same | 0.3.0 |
 
 `25G72` has no table in 0.3.0 yet: generating it needs a clean copy of that build's `bluetoothd` (`python3 tools/port.py <bluetoothd> 25G72`). On a build without a table the kext loads and does nothing.
 
-Results on the 26.7.2 machine, together with BTLEAdvFix 0.3.0:
+Results on that machine, together with BTLEAdvFix 0.3.0 (Instant Hotspot and AirDrop checked again on 26.7.3):
 
 | Feature | Result |
 |---------|--------|
@@ -272,7 +273,7 @@ Results on the 26.7.2 machine, together with BTLEAdvFix 0.3.0:
 | Auto Unlock with Apple Watch | works. One-time fix needed on that machine: the watch's `BluetoothLE` record in the System keychain had no IRK, so its RPA never resolved; deleting the record and rebooting Mac and watch let cloud pairing recreate it |
 | bluetoothd restarts (reason 654) | none |
 
-On 26.7.2 the code sites moved by `+0x590` compared to 25G72 and the `__DATA` addresses stayed the same; the routines are unchanged.
+On 26.7.2 the code sites moved by `+0x590` compared to 25G72 and the `__DATA` addresses stayed the same; the routines are unchanged. On 26.7.3 only `__eh_frame` (and so the routine area) moved, by `+0x18`.
 
 Other BCM20702 cards have the same Bluetooth 4.0 limits and are likely affected in the same way, but have not been tested. Cards with an Apple Bluetooth module (for example BCM94360NG/CS2) do not need this plugin.
 
@@ -294,7 +295,7 @@ Keep a working EFI backup, and keep a reliable way to disable the plugin: the `-
 
 ## Changelog
 
-- **0.3.0**: build-independent sources. Patch sites and addresses are found by signature with `tools/port.py`, which generates one table per macOS build (`BTLERPAConnect/builds/`); the kext picks the table by macOS build, checks the `LC_UUID` of `bluetoothd` and never patches an unknown build. The routines moved to `__eh_frame + 0x180` to leave room for BTLEAdvFix 0.3.0. Added macOS 26.7.2 (25G332). `tools/check_patterns.py` is replaced by `tools/port.py --check`.
+- **0.3.0**: build-independent sources. Patch sites and addresses are found by signature with `tools/port.py`, which generates one table per macOS build (`BTLERPAConnect/builds/`); the kext picks the table by macOS build, checks the `LC_UUID` of `bluetoothd` and never patches an unknown build. The routines moved to `__eh_frame + 0x180` to leave room for BTLEAdvFix 0.3.0. Added macOS 26.7.2 (25G332) and 26.7.3 (25G342). `tools/check_patterns.py` is replaced by `tools/port.py --check`.
 - **0.2.1**: first release. False UHE restart fix, dynamic connectable/scannable advertising (both connection paths, `ADV_SCAN_IND` interval raised to `0xA0`), connection to the iPhone's current RPA. Instant Hotspot works.
 - **0.2.0** (not released): only one of the two `LE_Create_Connection` paths was hooked, and fast scannable advertising was rejected with `0x12`.
 - **0.1.0** (not released): always advertised `ADV_SCAN_IND`. Replaced by the dynamic switch so the Mac stays connectable when idle.
